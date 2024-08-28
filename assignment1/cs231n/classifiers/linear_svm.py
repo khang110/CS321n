@@ -37,13 +37,15 @@ def svm_loss_naive(W, X, y, reg):
             margin = scores[j] - correct_class_score + 1  # note delta = 1
             if margin > 0:
                 loss += margin
+                dW[:, j] += X[i]    # update gradient for incorrect label
+                dW[:, y[i]] -= X[i] # update gradient for correct label
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
     loss /= num_train
 
     # Add regularization to the loss.
-    loss += reg * np.sum(W * W)
+    loss += 0.5 * reg * np.sum(W * W)
 
     #############################################################################
     # TODO:                                                                     #
@@ -55,7 +57,8 @@ def svm_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dW /= num_train   # scale gradient ovr the number of samples
+    dW += reg * W # append partial derivative of regularization term
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -78,7 +81,21 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = X.shape[0]     # number of samples
+    S = X @ W  # compute scores matrix S
+
+    correct_scores = S[np.arange(len(y)), y]
+    correct_scores = correct_scores.reshape((N, -1))
+
+    #compute the margin
+    temp = S - correct_scores + 1
+    temp = np.maximum(0, temp)
+    margins = np.sum(temp, axis=1)
+
+    margins = margins - 1
+
+    loss = np.sum(margins, axis=0)
+    loss = loss/N
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -93,7 +110,6 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
